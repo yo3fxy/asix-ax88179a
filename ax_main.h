@@ -46,7 +46,7 @@ typedef int (*_usb_write_function)(struct ax_device *dev, u8 cmd, u8 reqtype,
 typedef int (*usb_read_function)(struct ax_device *axdev, u8 cmd, u16 value,
 				 u16 index, u16 size, void *data, int eflag);
 typedef int (*usb_write_function)(struct ax_device *axdev, u8 cmd, u16 value,
-				  u16 index, u16 size, void *data);
+				  u16 index, u16 size, const void *data);
 
 #define USB_VENDOR_ID_ASIX		0x0B95
 #define USB_VENDOR_ID_SITECOM		0x0DF6
@@ -627,14 +627,14 @@ int ax_read_cmd
 int eflag);
 
 int ax_write_cmd
-(struct ax_device *axdev, u8 cmd, u16 value, u16 index, u16 size, void *data);
+(struct ax_device *axdev, u8 cmd, u16 value, u16 index, u16 size, const void *data);
 
 int ax_read_cmd_nopm
 (struct ax_device *axdev, u8 cmd, u16 value, u16 index, u16 size, void *data,
 int eflag);
 
 int ax_write_cmd_nopm
-(struct ax_device *axdev, u8 cmd, u16 value, u16 index, u16 size, void *data);
+(struct ax_device *axdev, u8 cmd, u16 value, u16 index, u16 size, const void *data);
 
 int ax_write_cmd_async
 (struct ax_device *axdev, u8 cmd, u16 value, u16 index, u16 size, void *data);

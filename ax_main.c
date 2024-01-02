@@ -514,7 +514,7 @@ static int __asix_read_cmd(struct ax_device *axdev, u8 cmd, u16 value,
 }
 
 static int __asix_write_cmd(struct ax_device *axdev, u8 cmd, u16 value,
-			    u16 index, u16 size, void *data, int in_pm)
+			    u16 index, u16 size, const void *data, int in_pm)
 {
 	int ret;
 	_usb_write_function fn;
@@ -560,7 +560,7 @@ int ax_read_cmd_nopm(struct ax_device *dev, u8 cmd, u16 value,
 }
 
 int ax_write_cmd_nopm(struct ax_device *dev, u8 cmd, u16 value,
-		      u16 index, u16 size, void *data)
+		      u16 index, u16 size, const void *data)
 {
 	int ret;
 
@@ -604,7 +604,7 @@ int ax_read_cmd(struct ax_device *dev, u8 cmd, u16 value, u16 index, u16 size,
 }
 
 int ax_write_cmd(struct ax_device *dev, u8 cmd, u16 value, u16 index, u16 size,
-		 void *data)
+		 const void *data)
 {
 	int ret;
 
@@ -1962,17 +1962,29 @@ static int ax_get_mac_address(struct ax_device *axdev)
 {
 	struct net_device *netdev = axdev->netdev;
 
+	u8 mac[ETH_ALEN];
+	memset(mac, 0, sizeof(mac));
+
 	if (ax_read_cmd(axdev, AX_ACCESS_MAC, AX_NODE_ID, ETH_ALEN,
-			ETH_ALEN, netdev->dev_addr, 0) < 0) {
+			ETH_ALEN, mac, 0) < 0) {
 		dev_err(&axdev->intf->dev, "Failed to read MAC address");
 		return -ENODEV;
 	}
 
+	if (is_valid_ether_addr(mac))
+		eth_hw_addr_set(netdev, mac);
+
 	if (ax_check_ether_addr(axdev))
 		dev_warn(&axdev->intf->dev, "Found invalid MAC address value");
 
-	ax_get_mac_pass(axdev, netdev->dev_addr);
+	ax_get_mac_pass(axdev, mac);
 
+	if (is_valid_ether_addr(mac)) {
+		eth_hw_addr_set(netdev, mac);
+	} else {
+		dev_warn(&axdev->intf->dev, "Invalid MAC address, using random\n");
+		eth_hw_addr_random(netdev);
+	}
 
 	memcpy(netdev->perm_addr, netdev->dev_addr, ETH_ALEN);
 
